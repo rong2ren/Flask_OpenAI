@@ -1,18 +1,17 @@
 from flask import Flask, render_template, request, jsonify, url_for
 from api.openai_api import openai_chat_completion
 from api.booklibrary_api import openlibary_search
-import asyncio
+import asyncio # for running API calls concurrently
+from config import logger # for logger
+import aiohttp
 
 app = Flask(__name__)
-
-import aiohttp
-import asyncio
 
 async def openlibrary_search(name, author):
     url = f'http://openlibrary.org/search.json?title={name}&author={author}'
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
-            json_response = await response.json()
+            json_response = await response.json()            
             if 'docs' in json_response and len(json_response['docs']) > 0:
                 cover_id = json_response['docs'][0]['cover_i']
                 return cover_id
@@ -27,9 +26,10 @@ async def search_books(prompt):
         {"role": "user", "content" : f"Generate books recommendations based on the user input: {prompt}. {responseFormat}"}
     ]
     response_data = openai_chat_completion("gpt-3.5-turbo", messages, 1024, 0.4)
+    if not response_data:
+        return {'error': 'OpenAI API call failed!'}
 
     book_lines = [line.strip() for line in response_data.split('\n') if line.strip()]
-    #book_lines = list(filter(str.strip, response_data.split('\n')))
 
     async def process_book(line):
         # Split the line by the delimiter to extract book name and author
@@ -45,7 +45,7 @@ async def search_books(prompt):
                 # Wait for the cover ID to be retrieved
                 cover_id = await cover_id_task
             except Exception as e:
-                print(f'Failed to process book from openliarry: {name}, {author}. Error: {e}')
+                logger.warning(f'Failed to process book from openliarry: {name}, {author}. Error: {e}')
                 cover_id = ""
             # Determine cover URL based on cover ID
             if not cover_id:
@@ -53,9 +53,8 @@ async def search_books(prompt):
             else:
                 cover_url = f"https://covers.openlibrary.org/b/id/{cover_id}-M.jpg"
             
-            print(f"Name: {name}, Author: {author}, ID: {cover_id}")
+            logger.info(f"Name: {name}, Author: {author}, ID: {cover_id}")
             return {'name': name, 'author': author, 'coverUrl': cover_url, 'description': description}
-    
     
     # Create tasks to process each book in response_lines concurrently
     book_tasks = [asyncio.create_task(process_book(line)) for line in book_lines]
@@ -86,7 +85,10 @@ async def search_ajax_request():
     # app.logger.info(prompt)
     if prompt:
         response_data = await search_books(prompt)
-        return jsonify({'books':response_data, 'userInput' : prompt})
+        if 'error' not in response_data:
+            return jsonify({'books':response_data, 'userInput' : prompt})
+        else:
+            return jsonify(response_data)
     else:
         return jsonify({'error':'Missing prompt!'})
 

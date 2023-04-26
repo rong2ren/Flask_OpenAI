@@ -44,14 +44,18 @@
           method: 'POST',
           data: { prompt: userInput },
           success: function(data) {
-            // Update the book list with the returned data
-            $('#mySubmitButton').html('<i class="fas fa-search"></i>'); // Change text back to "Search"
-            $('#mySubmitButton').prop('disabled', false); // Enable the submit button
-            $('#prompt').attr("placeholder", "Type a search prompt");
-            $('#prompt').prop("disabled", false); // enable the search text input
-            $('#statusContainer').html("Result for: " + data.userInput);
-            updateBookList(data.books);
-             
+            if (data.error) {
+                // Handle the error
+                $('#statusContainer').html("Opps! Error occured. Please try again.");
+            } else {
+                // Update the book list with the returned data
+                $('#mySubmitButton').html('<i class="fas fa-search"></i>'); // Change text back to "Search"
+                $('#mySubmitButton').prop('disabled', false); // Enable the submit button
+                $('#prompt').attr("placeholder", "Type a search prompt");
+                $('#prompt').prop("disabled", false); // enable the search text input
+                $('#statusContainer').html("Result for: " + data.userInput);
+                updateBookList(data.books);
+            }
           },
           error: function(xhr, status, error) {
               // handle error response
@@ -59,6 +63,7 @@
               $('#mySubmitButton').prop('disabled', false); // Enable the submit button
               $('#prompt').attr("placeholder", "Type a search prompt");
               $('#prompt').prop("disabled", false); // enable the search text input
+              $('#statusContainer').html("Opps! Error occured. Please try again.");
               if (xhr.status === 400) {
                 console.error('User input is required.');
               } else if (xhr.status === 500) {
@@ -93,7 +98,7 @@
                         '<div class="card-body">' +
                           '<p class="card-title text-center"><strong>' + book.name + '</strong></p>' +
                           '<p class="card-text">' + book.description + '</p>' +
-                        '</div>' + 
+                        '</div>' +
                       '</div>' +
                     '</div>');
 

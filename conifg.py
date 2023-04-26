@@ -1,1 +1,0 @@
-# config.py is a module that contains the configuration options for the Flask OpenAI application.
