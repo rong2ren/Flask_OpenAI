@@ -7,13 +7,10 @@ from config import logger # for logging
 # load OpenAI API key from .env file
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-def openai_completion(model, prompt, max_tokens=256, temperature=0.0):
+def openai_completion(prompt, model = "text-davinci-003", max_tokens = 256, temperature = 0.0):
     if not prompt:
         logger.error("OpenAI: No prompt provided.")
         return None
-    
-    if not model:
-        model = "text-davinci-003"
     
     try:
         logger.info(f"OpenAI: Send request to ChatGPT Compleition API: {model}")
@@ -46,7 +43,7 @@ def openai_completion(model, prompt, max_tokens=256, temperature=0.0):
         logger.error(f"OpenAI: ChatGPT Chat Completion API Request failed with Exception {e}")
         return None
 
-def openai_chat_completion(model, messages, max_tokens = 256, temperature = 0.0):
+def openai_chat_completion(messages, model = "gpt-3.5-turbo", max_tokens = 256, temperature = 0.0):
     if not messages:
         logger.error("OpenAI: No messages provided.")
         return None

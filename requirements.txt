@@ -4,6 +4,7 @@ python-dotenv==1.0.0
 tiktoken==0.3.3
 flask==2.2.3
 flask[async]==2.1.2
+redis[hiredis]
 logging (already installed with python standard library)
 asyncio (already installed with python standard library)
 os (already installed with python standard library)

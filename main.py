@@ -4,8 +4,11 @@ from api.booklibrary_api import openlibary_search
 import asyncio # for running API calls concurrently
 from config import logger # for logger
 import aiohttp
+from datastore.RedisConn import RedisClient
 
 app = Flask(__name__)
+redis_client = RedisClient()
+
 
 async def openlibrary_search(name, author):
     url = f'http://openlibrary.org/search.json?title={name}&author={author}'
@@ -25,12 +28,14 @@ async def search_books(prompt):
         {"role": "user", "content" : f"You are an expert in books. You love to give book recommendations based on their needs. {responseFormat}"},
         {"role": "user", "content" : f"Generate books recommendations based on the user input: {prompt}. {responseFormat}"}
     ]
-    response_data = openai_chat_completion("gpt-3.5-turbo", messages, 1024, 0.4)
-    if not response_data:
+    #!!may need to change later to handle errors here: https://github.com/openai/openai-cookbook/blob/main/examples/How_to_handle_rate_limits.ipynb
+    response_data = openai_chat_completion(messages, "gpt-3.5-turbo", 1024, 0.4)
+    if not response_data: 
         return {'error': 'OpenAI API call failed!'}
+    
+    user_id = redis_client.create_user_session()
 
     book_lines = [line.strip() for line in response_data.split('\n') if line.strip()]
-
     async def process_book(line):
         # Split the line by the delimiter to extract book name and author
         book = line.split('$')
@@ -54,13 +59,15 @@ async def search_books(prompt):
                 cover_url = f"https://covers.openlibrary.org/b/id/{cover_id}-M.jpg"
             
             logger.info(f"Name: {name}, Author: {author}, ID: {cover_id}")
+            redis_client.add_book(user_id, name)
             return {'name': name, 'author': author, 'coverUrl': cover_url, 'description': description}
     
     # Create tasks to process each book in response_lines concurrently
     book_tasks = [asyncio.create_task(process_book(line)) for line in book_lines]
     # Wait for all book tasks to complete
     books = await asyncio.gather(*book_tasks)
-    # Filter out None results
+    
+    redis_client.expire_user_session_after(user_id, 120)
     return books
 
 
