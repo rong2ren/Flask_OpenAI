@@ -8,22 +8,6 @@ import os
 # Load environment variables from .env file
 load_dotenv()
 
-class Config(object):
-    DEBUG = False
-    TESTING = False
-    SECRET_KEY = os.environ['FLASK_SECRET_KEY']
-
-class ProductionConfig(Config):
-    DEBUG = False
-
-class DevelopmentConfig(Config):
-    DEVELOPMENT = True
-    DEBUG = True
-
-class TestingConfig(Config):
-    TESTING = True
-
-
 # Create the Flask application
 app = Flask(__name__)
 # NOTE: The secret key is used to cryptographically-sign the cookies used for storing
