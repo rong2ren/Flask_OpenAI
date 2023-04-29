@@ -4,7 +4,7 @@ import uuid # for generate user_session_id
 import asyncio # for running API calls concurrently
 from api.openai_api import openai_chat_completion
 from api.openlibrary_api import openlibrary_search
-from datastore.RedisConn import RedisClient
+from datastore.redis_conn import RedisClient
 
 # Create the Redis Connection for storing books for each user session
 redis_client = RedisClient()
