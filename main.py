@@ -3,7 +3,7 @@ from flask import render_template, request, jsonify, url_for, session
 import uuid # for generate user_session_id
 import asyncio # for running API calls concurrently
 from api.openai_api import openai_chat_completion
-from api.booklibrary_api import openlibrary_search
+from api.openlibrary_api import openlibrary_search
 from datastore.RedisConn import RedisClient
 
 # Create the Redis Connection for storing books for each user session

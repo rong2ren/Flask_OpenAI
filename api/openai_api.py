@@ -3,7 +3,6 @@ import openai  # used for calling the OpenAI API
 import tiktoken # for counting tokens
 import time # for measuring time duration of API calls
 from config import logger # for logging
-
 # load OpenAI API key from .env file
 openai.api_key = os.getenv("OPENAI_API_KEY")
 

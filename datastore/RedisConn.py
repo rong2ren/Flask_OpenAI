@@ -1,5 +1,5 @@
 import redis
-from config import logger # for logging
+from config import logger
 import os
 
 """
@@ -20,7 +20,9 @@ class RedisClient:
             decode_responses=True
         )
         self.check_connection()
-        if os.getenv('REDIS_REMOVE_ALL_WHEN_START', False):
+        
+        to_remove_all = os.getenv('REDIS_REMOVE_ALL_WHEN_START')
+        if to_remove_all.lower() in ['true', '1']:
             self.redis_client.flushall()
 
     def get_redis_instance(self):
