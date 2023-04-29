@@ -1,35 +1,49 @@
 import redis
+from config import logger # for logging
 import os
-import uuid
-#from config import logger # for logging
+
+"""
+docker run -d --name redis-stack -p 6379:6379 -p 8001:8001 redis/redis-stack:latest
+localhost:8001
+docker ps
+docker stop redis-stack
+docker exec -it redis-stack redis-cli
+"""
 
 class RedisClient:
     def __init__(self):
-        # Initialize a Redis client object
+        # Initialize a Redis instance with decode_response set to True
         self.redis_client = redis.Redis(
             host=os.getenv('REDIS_HOST', 'localhost'),
             port=os.getenv('REDIS_PORT', 6379),
             db=0,
             decode_responses=True
         )
-        if self.redis_client.ping():
+        self.check_connection()
+        if os.getenv('REDIS_REMOVE_ALL_WHEN_START', False):
             self.redis_client.flushall()
-        else:
-            print("Redis: failed to connect to Redis")
+
+    def get_redis_instance(self):
+        return self.redis_client
 
     def check_connection(self):
         # Check if the Redis client object is connected to the Redis cache
-        return self.redis_client.ping()
+        try:
+            self.redis_client.ping()
+            return True
+        except redis.exceptions.ConnectionError as e:
+            logger.error(f"Redis: connection failed. {e}")
+            return False
 
     def remove_all(self):
         # Remove all data in the Redis cache
         return self.redis_client.flushall()
     
-    def create_user_session(self): 
-        return str(uuid.uuid4())
-    
     def expire_user_session_after(self, user_id, expire_second=3600):
-        self.redis_client.expire(user_id, expire_second)
+        # expire the user session after expire_second second, default to 1 hour
+        # Set expiry only when the key has no expiry
+        if self.redis_client.ttl(user_id) == -1:
+            self.redis_client.expire(user_id, expire_second)
 
     def add_book(self, user_id, book):
         """
@@ -69,3 +83,5 @@ class RedisClient:
     def remove_user(self, user_id):
         # Remove the list of books for the given user ID from Redis.
         return self.redis_client.delete(user_id)
+    
+# .decode('utf-8')    

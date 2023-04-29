@@ -82,14 +82,14 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
     try:
         encoding = tiktoken.encoding_for_model(model)
     except KeyError:
-        logger.warning("tiktoken: model not found. Using cl100k_base encoding.")
+        logger.debug("tiktoken: model not found. Using cl100k_base encoding.")
         encoding = tiktoken.get_encoding("cl100k_base")
     
     if model == "gpt-3.5-turbo":
-        logger.info("tiktoken: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
+        logger.debug("tiktoken: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
         model="gpt-3.5-turbo-0301"
     elif model == "gpt-4":
-        logger.info("tiktoken: gpt-4 may change over time. Returning num tokens assuming gpt-4-0314.")
+        logger.debug("tiktoken: gpt-4 may change over time. Returning num tokens assuming gpt-4-0314.")
         model="gpt-4-0314"
     
     model_data = {

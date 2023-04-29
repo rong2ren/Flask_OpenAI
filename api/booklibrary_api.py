@@ -1,8 +1,19 @@
 import requests
 from config import logger # for logging
+import aiohttp
 
+async def openlibrary_search(name, author):
+    url = f'http://openlibrary.org/search.json?title={name}&author={author}'
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            json_response = await response.json()            
+            if 'docs' in json_response and len(json_response['docs']) > 0:
+                cover_id = json_response['docs'][0]['cover_i']
+                return cover_id
+            else:
+                return None
 
-def openlibary_search(bookName, author):
+def openlibary_search_2(bookName, author):
   # Fetch book information results from Open Library API
   url = f'https://openlibrary.org/search.json?author={author}&q={bookName}'
   
