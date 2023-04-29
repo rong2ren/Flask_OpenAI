@@ -33,23 +33,6 @@ app.secret_key = os.environ.get('FLASK_SECRET_KEY')
 # Enable Flask's debug mode if the DEBUG environment variable is set
 app.config['FLASK_DEBUG'] = os.environ.get('FLASK_DEBUG', False)
 
-## Configure Redis for storing the session data on the server-side
-#from redis import Redis
-#from flask_session import Session
-#app.config['SESSION_TYPE'] = 'redis' #specifies which type of session interface to use
-#app.config['SESSION_REDIS'] = Redis(host=os.getenv('REDIS_HOST'), port=os.getenv('REDIS_PORT'))
-"""
-Flask sessions expire once you close the browser unless you have a permanent session.
-By default in Flask, permanent_session_lifetime is set to 31 days.
-
-I will set the SESSION_PERMANENT to false since right now there is no user login function, 
-only temporary user_id assigned to each user currently visiting the website
-"""
-#app.config['SESSION_PERMANENT'] = os.environ.get('SESSION_PERMANENT')
-## Create and initialize the Flask-Session object AFTER `app` has been configured
-#Session(app)
-
-
 # Initialize logger - will use Flask's built-in logger
 LOG_LEVEL_MAP = {
     'DEBUG': logging.DEBUG,
