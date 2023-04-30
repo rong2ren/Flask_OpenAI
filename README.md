@@ -17,4 +17,10 @@ Chat Messages (messages, where you will store the chatid, role, content and any 
 3. langchain: https://python.langchain.com/en/latest/modules/memory/how_to_guides.html
 4. https://github.com/olahsymbo/interview-ai-gpt3
 5. https://github.com/continuum-llms/chatgpt-memory/blob/main/chatgpt_memory/utils/reflection.py
-6. 
+
+
+Todo:
+1. error/exception handling
+2. cache expiry and be notified when a session is expired so I can delete from redis
+3. more books
+4. prompt enginner

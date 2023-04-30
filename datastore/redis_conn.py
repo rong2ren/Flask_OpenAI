@@ -1,5 +1,5 @@
 import redis
-from config import logger
+from flask_app import logger
 import os
 
 """

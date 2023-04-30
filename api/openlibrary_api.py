@@ -1,5 +1,5 @@
 import requests
-from config import logger # for logging
+from flask_app import logger # for logging
 import aiohttp
 
 async def openlibrary_search(name, author):

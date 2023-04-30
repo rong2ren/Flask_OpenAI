@@ -2,7 +2,7 @@ import os  # for reading API key
 import openai  # used for calling the OpenAI API
 import tiktoken # for counting tokens
 import time # for measuring time duration of API calls
-from config import logger # for logging
+from flask_app import logger # for logging
 # load OpenAI API key from .env file
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -99,7 +99,7 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
         tokens_per_message = model_data[model]["tokens_per_message"]
         tokens_per_name = model_data[model]["tokens_per_name"]
     else:
-        raise NotImplementedError(f"tiktoken - num_tokens_from_messages() is not implemented for model {model}.")
+        raise NotImplementedError(f"tiktoken: num_tokens_from_messages() is not implemented for model {model}.")
     
     num_tokens = 0
     for message in messages:

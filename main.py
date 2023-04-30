@@ -1,4 +1,4 @@
-from config import app, logger
+from flask_app import app, logger
 from flask import render_template, request, jsonify, url_for, session
 import uuid # for generate user_session_id
 import asyncio # for running API calls concurrently
@@ -9,12 +9,27 @@ from datastore.redis_conn import RedisClient
 # Create the Redis Connection for storing books for each user session
 redis_client = RedisClient()
 
-async def search_books(prompt, user_session_id):
+def prompt_engineer(user_prompt, user_session_id, prompt_type = 0):
     responseFormat = "Please provide the recommendations in the following format: Each book should be on one line, and each line should only include three fields separated by '$': the book name, the book author, and a reason why each book is recommended, like this: Book name $ Book author $ A reason why this book is recommended. Please make sure not to include a number bullet in front of the book name."
     messages = [
-        {"role": "user", "content" : f"You are an expert in books. You love to give book recommendations based on their needs. {responseFormat}"},
-        {"role": "user", "content" : f"Generate books recommendations based on the user input: {prompt}. {responseFormat}"}
+        {"role": "user", "content" : f"You are an expert in books. You love to give book recommendations based on their needs. {responseFormat}"}
     ]
+    if prompt_type == "search": # book recommendation
+        user_input_message = {"role": "user", "content" : f"Generate books recommendations based on the user input: {user_prompt}. {responseFormat}"}
+        messages.append(user_input_message)
+    elif prompt_type == "more": # more book recommendation
+        history_user_mesage = {"role": "user", "content" : f"Generate books recommendations based on the user input: {user_prompt}."}
+        history_books = redis_client.get_books(user_session_id)
+        history_books_string = ', '.join(str(elem) for elem in history_books)
+        history_ui_message = {"role": "assistant", "content" : history_books_string}
+        messages.append(history_user_mesage)
+        messages.append(history_ui_message)
+        user_input_message = {"role": "user", "content" : f"Generate more books recommendations. {responseFormat}"}
+        messages.append(user_input_message)
+    return messages
+
+async def search_books(messages, user_session_id):
+    
     #!!may need to change later to handle errors here: https://github.com/openai/openai-cookbook/blob/main/examples/How_to_handle_rate_limits.ipynb
     response_data = openai_chat_completion(messages, "gpt-3.5-turbo", 1024, 0.4)
     if not response_data: 
@@ -67,31 +82,32 @@ async def search_books(prompt, user_session_id):
 # the associated function.
 @app.route('/')
 def home():
-    if session.get("user_session_id") is None:
-        session['user_session_id'] = str(uuid.uuid4())
-        logger.info(f"Flask_OpenAI: home page: new user {session['user_session_id']}")
+    if session.get("user_id") is None:
+        session['user_id'] = str(uuid.uuid4())
+        logger.info(f"Flask_OpenAI: home page: new user {session['user_id']}")
     return render_template('index.html')
 
 @app.route('/recommend')
 def search():
-    if session.get("user_session_id") is None:
-        session['user_session_id'] = str(uuid.uuid4())
-        logger.info(f"Flask_OpenAI: recommend redirect: couldnt find user id, created a new one: {session['user_session_id']}")
+    if session.get("user_id") is None:
+        session['user_id'] = str(uuid.uuid4())
+        logger.info(f"Flask_OpenAI: recommend redirect: couldnt find user id, created a new one: {session['user_id']}")
     return render_template('search.html')
 
-# AJAX call
+# AJAX call: search for books
 @app.route('/search', methods=['POST'])
 async def search_request():
     # Get the value of the 'prompt' parameter from the POST request
     prompt = request.form['prompt']
-    user_session_id = session['user_session_id']
-    
+    action = request.form['action']
     if prompt:
+        user_session_id = f"{session['user_id']}-{prompt}"
         if redis_client.check_connection():
             #new book search: remove the previous books
-            redis_client.remove_user(user_session_id)
+            #redis_client.remove_user(user_prev_session_id)
             #sent request to ChatGPT and openlibary and store the list of books in redis session
-            response_data = await search_books(prompt, user_session_id)
+            messages = prompt_engineer(prompt, user_session_id, action)
+            response_data = await search_books(messages, user_session_id)
             #set expiry seconds for the redis session (default: 1 hour)
             redis_client.expire_user_session_after(user_session_id)
         else:
@@ -103,12 +119,9 @@ async def search_request():
         return jsonify({'books':response_data, 'userInput' : prompt})
     else:
         return jsonify(response_data)
+    
+
 
 
 if __name__ == '__main__':
     app.run()
-
-  
-
-  
-
