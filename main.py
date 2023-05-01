@@ -10,9 +10,9 @@ from datastore.redis_conn import RedisClient
 redis_client = RedisClient()
 
 def prompt_engineer(user_prompt, user_session_id, prompt_type = 0):
-    responseFormat = "Please provide the recommendations in the following format: Each book should be on one line, and each line should only include three fields separated by '$': the book name, the book author, and a reason why each book is recommended, like this: Book name $ Book author $ A reason why this book is recommended. Please make sure not to include a number bullet in front of the book name."
+    responseFormat = "Provide the recommendations in the following format: Each book should be on one line, and each line should only include three fields separated by '$': the book name, the book author, and a reason why each book is recommended, like this: Book name $ Book author $ A reason why this book is recommended. Please make sure not to include a number bullet in front of the book name."
     messages = [
-        {"role": "user", "content" : f"You are an expert in books. You love to give book recommendations based on their needs. {responseFormat}"}
+        {"role": "user", "content" : f"You are an expert in books. You role is to give book recommendations based on their needs. {responseFormat}"}
     ]
     if prompt_type == "search": # book recommendation
         user_input_message = {"role": "user", "content" : f"Generate books recommendations based on the user input: {user_prompt}. {responseFormat}"}
@@ -75,23 +75,18 @@ async def search_books(messages, user_session_id):
     books = await asyncio.gather(*book_tasks)
     return books
 
-
-
-# The route() function of the Flask class is a decorator,
-# which tells the application which URL should call
-# the associated function.
-@app.route('/')
-def home():
+@app.before_request
+def check_session():
     if session.get("user_id") is None:
         session['user_id'] = str(uuid.uuid4())
-        logger.info(f"Flask_OpenAI: home page: new user {session['user_id']}")
+        logger.info(f"new user: {session['user_id']}")
+
+@app.route('/')
+def home():
     return render_template('index.html')
 
 @app.route('/recommend')
 def search():
-    if session.get("user_id") is None:
-        session['user_id'] = str(uuid.uuid4())
-        logger.info(f"Flask_OpenAI: recommend redirect: couldnt find user id, created a new one: {session['user_id']}")
     return render_template('search.html')
 
 # AJAX call: search for books
@@ -120,7 +115,13 @@ async def search_request():
     else:
         return jsonify(response_data)
     
+@app.errorhandler(400)
+def handle_bad_request(e):
+    return "Bad request", 400
 
+@app.errorhandler(500)
+def handle_server_error(e):
+    return "Server error", 500
 
 
 if __name__ == '__main__':

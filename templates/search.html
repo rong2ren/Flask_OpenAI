@@ -23,7 +23,7 @@
             console.log("search books: error: user input is empty!");
         } else { 
             var userInput= $('#prompt').val();
-            searchBooksByUserInput(userInput);
+            ajax_call(userInput, "search");
         }
       }
 
@@ -34,27 +34,13 @@
             console.log("search more books: error: user input is empty!");
         } else { 
             var userInput= $('#current_user_prompt').val();
-            searchMoreBooksByUserInput(userInput);
+            ajax_call(userInput, "more");
         }
-      }
-
-      function after_ajax_call(){
-        $('#mySubmitButton').html('<i class="fas fa-search"></i>'); // Change text back to "Search"
-        $('#mySubmitButton').prop('disabled', false); // Enable the submit button
-        $('#prompt').attr("placeholder", "Type a search prompt");
-        $('#prompt').prop("disabled", false); // enable the search text input
       }
 
       function ajax_call(userInput, action){
         //console.log("making ajax call with userInput:" + userInput + " action:" + action)
-        //hide the more books button
-        $('#more_books_btn').hide(); 
-        //update button style to loading + spinner and input text to userInput
-        $('#prompt').attr("placeholder", userInput);
-        $('#prompt').prop("disabled", true);
-        $('#mySubmitButton').html('<i class="fas fa-circle-notch fa-spin"></i>');
-        $('#mySubmitButton').prop('disabled', true);
-        
+        before_ajax_call(action, userInput);
         $.ajax({
           url: '/search',
           method: 'POST',
@@ -65,22 +51,23 @@
           success: function(data) {
             if (data.error) {
               // Handle the error in the response data
-              after_ajax_call()
-              $('#statusContainer').html("Opps! Error occured. Please try again.");
+              $('#statusContainer').html("Opps! Error occured. Please try again. " + data.error);
               $('#current_user_prompt').val("")
+              
             } else {
               // Handle success case
-              after_ajax_call()
               $('#statusContainer').html("Result for: " + data.userInput);
               $('#current_user_prompt').val(data.userInput);
               updateBookList(data.books);
             }
+            after_ajax_call(action);
           },
           error: function(xhr, status, error) {
               // handle error response
-              after_ajax_call()
               $('#statusContainer').html("Opps! Error occured. Please try again.");
               $('#current_user_prompt').val("")
+              $('#more_books_btn').hide();
+              after_ajax_call(action);
 
               if (xhr.status === 400) {
                 console.error('User input is required.');
@@ -97,24 +84,36 @@
         });
 
       }
-        
-      function searchBooksByUserInput(userInput) {
-        $('#statusContainer').html('Got your request. Searching books <i class="fas fa-circle-notch fa-spin"></i>');
-        $('#bookListContainer').empty(); // Clear existing content
-        
-        // Make AJAX request to the server
-        ajax_call(userInput, "search")
-        // Prevent form submission
-        return false;
-      }
 
-      function searchMoreBooksByUserInput(userInput) {
-        $('#statusContainer').html('Got your request. Searching more books <i class="fas fa-circle-notch fa-spin"></i>');
+      function before_ajax_call(action, userInput){
+        if(action == "search"){
+          $('#statusContainer').html('Got your request. Searching books <i class="fas fa-circle-notch fa-spin"></i>');
+          $('#bookListContainer').empty(); // Clear existing content
+          $('#more_books_btn').hide();//hide the more books button
+          //update button style to loading + spinner and input text to userInput
+          $('#prompt').attr("placeholder", userInput);
+          $('#prompt').prop("disabled", true);
+          $('#mySubmitButton').html('<i class="fas fa-circle-notch fa-spin"></i>');
+          $('#mySubmitButton').prop('disabled', true);
+
+        } else if(action == "more"){
+          $('#statusContainer').html('Got your request. Searching more books <i class="fas fa-circle-notch fa-spin"></i>');
+          $('#more_books_btn').html('Searching <i class="fas fa-circle-notch fa-spin"></i>');
+          $('#more_books_btn').prop('disabled', true);
+        }
         
-        // Make AJAX request to the server
-        ajax_call(userInput, "more")
-        // Prevent form submission
-        return false;
+      }
+      function after_ajax_call(action){
+        if(action == "search"){
+          $('#mySubmitButton').html('<i class="fas fa-search"></i>'); // Change text back to "Search"
+          $('#mySubmitButton').prop('disabled', false); // Enable the submit button
+          $('#prompt').attr("placeholder", "Type a search prompt");
+          $('#prompt').prop("disabled", false); // enable the search text input
+        } else if(action == "more"){
+          $('#more_books_btn').html('More Books');
+          $('#more_books_btn').prop('disabled', false);
+        }
+        
       }
 
       // Function to update book list container with book data
@@ -154,7 +153,7 @@
           var urlParams = new URLSearchParams(window.location.search);
           if(urlParams.has('prompt')){
               var userInput = urlParams.get('prompt');
-              searchBooksByUserInput(userInput);
+              ajax_call(userInput, "search");
               // Get the current URL without query parameters
               const baseUrl = window.location.href.split('?')[0];
               // To replace current URL without adding it to history entries
@@ -181,7 +180,7 @@
             <div class="input-group flex-grow-1">
                 <input class="form-control border-0 rounded-pill" type="search" placeholder="Search" aria-label="Search" id="prompt" name="prompt" required>
                 <div class="input-group-append">
-                    <button class="btn btn-outline-secondary border-0 rounded-pill px-2" type="submit" id="mySubmitButton" aria-label="Search"><i class="fas fa-search"></i></button>
+                    <button class="btn btn-outline-success border-0 px-2" type="submit" id="mySubmitButton" aria-label="Search"><i class="fas fa-search"></i></button>
                 </div>
             </div>
           </form>
@@ -232,7 +231,7 @@
         <div class="d-flex justify-content-center">
           <form onsubmit="searchMoreBooks();">
             <input type="hidden" id="current_user_prompt" name="current_user_prompt" value="">
-            <button class="btn btn-primary mx-auto" id="more_books_btn">More Books</button>
+            <button class="btn btn-outline-success mx-auto my-5" id="more_books_btn">More Books</button>
           </form>
         </div>
 

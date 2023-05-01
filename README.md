@@ -1,6 +1,11 @@
 
+## Flask
+Flask is a micro web framework written in Python. It's designed to be lightweight and flexible, making it a popular choice for building web applications. Flask provides a lot of functionality out of the box, but it's also highly extensible, meaning you can easily add additional libraries and packages to customize your application.
 
-## resources
+## Redis
+Redis is an in-memory data structure store that's often used as a database, cache, and message broker. It's known for its fast read and write speeds, making it a great choice for applications that require high performance. Redis can be used to store a wide range of data types, including strings, lists, sets, and hashes.
+
+## LangChain
 https://github.com/hwchase17/langchain/tree/c2d1d903fa35b91018b4d777db2b008fcbaa9fbc
 
 
@@ -19,7 +24,7 @@ Chat Messages (messages, where you will store the chatid, role, content and any 
 5. https://github.com/continuum-llms/chatgpt-memory/blob/main/chatgpt_memory/utils/reflection.py
 
 
-Todo:
+## Todo:
 1. error/exception handling
 2. cache expiry and be notified when a session is expired so I can delete from redis
 3. more books
