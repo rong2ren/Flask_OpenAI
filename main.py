@@ -10,21 +10,22 @@ from datastore.redis_conn import RedisClient
 redis_client = RedisClient()
 
 def prompt_engineer(user_prompt, user_session_id, prompt_type = 0):
-    responseFormat = "Provide the recommendations in the following format: Each book should be on one line, and each line should only include three fields separated by '$': the book name, the book author, and a reason why each book is recommended, like this: Book name $ Book author $ A reason why this book is recommended. Please make sure not to include a number bullet in front of the book name."
+    responseFormat = "Provide recommendations in the following format: Each book should be on one line, and each line should only include three fields separated by '$': the book name, author, and a reason why it is recommended, like this: Book name$Book author$A reason why this book is recommended. Make sure not to include a number bullet in front of the book name and don't recommend a book that has been recommended before."
     messages = [
         {"role": "user", "content" : f"You are an expert in books. You role is to give book recommendations based on their needs. {responseFormat}"}
     ]
     if prompt_type == "search": # book recommendation
-        user_input_message = {"role": "user", "content" : f"Generate books recommendations based on the user input: {user_prompt}. {responseFormat}"}
+        user_input_message = {"role": "user", "content" : f"Generate at least 6 book recommendations based on the user input: {user_prompt}. {responseFormat}"}
         messages.append(user_input_message)
     elif prompt_type == "more": # more book recommendation
-        history_user_mesage = {"role": "user", "content" : f"Generate books recommendations based on the user input: {user_prompt}."}
+        history_user_mesage = {"role": "user", "content" : f"Generate book recommendations based on the user input: {user_prompt}."}
         history_books = redis_client.get_books(user_session_id)
         history_books_string = ', '.join(str(elem) for elem in history_books)
-        history_ui_message = {"role": "assistant", "content" : history_books_string}
+        logger.info("books have been recommended: " + history_books_string)
+        history_ui_message = {"role": "assistant", "content" : f"{history_books_string}"}
         messages.append(history_user_mesage)
         messages.append(history_ui_message)
-        user_input_message = {"role": "user", "content" : f"Generate more books recommendations. {responseFormat}"}
+        user_input_message = {"role": "user", "content" : f"Generate at least 6 more book recommendations. {responseFormat}"}
         messages.append(user_input_message)
     return messages
 
@@ -98,8 +99,9 @@ async def search_request():
     if prompt:
         user_session_id = f"{session['user_id']}-{prompt}"
         if redis_client.check_connection():
-            #new book search: remove the previous books
-            #redis_client.remove_user(user_prev_session_id)
+            if action == "search" and redis_client.is_user_session_exist(user_session_id):
+                #new book search: remove the previous books
+                redis_client.remove_user_session(user_session_id)
             #sent request to ChatGPT and openlibary and store the list of books in redis session
             messages = prompt_engineer(prompt, user_session_id, action)
             response_data = await search_books(messages, user_session_id)
@@ -114,7 +116,8 @@ async def search_request():
         return jsonify({'books':response_data, 'userInput' : prompt})
     else:
         return jsonify(response_data)
-    
+
+"""
 @app.errorhandler(400)
 def handle_bad_request(e):
     return "Bad request", 400
@@ -122,6 +125,8 @@ def handle_bad_request(e):
 @app.errorhandler(500)
 def handle_server_error(e):
     return "Server error", 500
+"""  
+
 
 
 if __name__ == '__main__':
