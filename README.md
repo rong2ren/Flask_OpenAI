@@ -29,3 +29,8 @@ Chat Messages (messages, where you will store the chatid, role, content and any 
 2. cache expiry and be notified when a session is expired so I can delete from redis
 3. more books
 4. prompt enginner
+5. does langchain use chat or completion
+
+
+watch prompt engineer course
+watch youtube video about langchain

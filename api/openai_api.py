@@ -24,13 +24,10 @@ def openai_completion(prompt, model = "text-davinci-003", max_tokens = 256, temp
         # calculate the time it took to receive the response
         response_time = time.time() - start_time
 
-        # extract the text from the response
-        completion_text = completion.choices[0].text
-
         # print the time delay and text received
         logger.info(f"OpenAI: Full response received {response_time:.2f} seconds after request. Number of token usage: {completion.usage.total_tokens}")
         #print(f"Full text received: {completion_text}")
-        return completion_text.strip()
+        return completion.choices[0].text
     except openai.error.APIError as e:
         logger.error(f"OpenAI: OpenAI API returned an API Error: {e}")
         return None
@@ -57,14 +54,14 @@ def openai_chat_completion(messages, model = "gpt-3.5-turbo", max_tokens = 256, 
         completion = openai.ChatCompletion.create(
                 model = model,
                 messages = messages,
-                temperature = temperature,
+                temperature = temperature,# this is the degree of randomness of the model's output
                 max_tokens= max_tokens,
         )
         # calculate the time it took to receive the response
         response_time = time.time() - start_time
         # print the time delay and completion token
         logger.info(f"OpenAI: Full response received {response_time:.2f} seconds after request. Number of token: {completion.usage.total_tokens}")
-        return completion.choices[0].message.content.strip()
+        return completion.choices[0].message.content
     except openai.error.APIError as e:
         logger.error(f"OpenAI: OpenAI API returned an API Error: {e}")
         return None

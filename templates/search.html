@@ -20,9 +20,12 @@
         event.preventDefault();
         // Get user input from the form
         if ($('#prompt').val().trim() === '') {
-            console.log("search books: error: user input is empty!");
+            console.error("search books: error: user input is empty!");
         } else { 
             var userInput= $('#prompt').val();
+            const baseUrl = window.location.href.split('?')[0];
+            // To replace current URL without adding it to history entries
+            history.replaceState(null, null, baseUrl+'?prompt='+userInput);
             ajax_call(userInput, "search");
         }
       }
@@ -31,7 +34,7 @@
         event.preventDefault();
         // Get user input from the form
         if ($('#current_user_prompt').val().trim() === '') {
-            console.log("search more books: error: user input is empty!");
+            console.error("search more books: error: user input is empty!");
         } else { 
             var userInput= $('#current_user_prompt').val();
             ajax_call(userInput, "more");
@@ -64,7 +67,7 @@
           },
           error: function(xhr, status, error) {
               // handle error response
-              $('#statusContainer').html("Opps! Error occured. Please try again.");
+              $('#statusContainer').html("Opps! Error occured. Please try again." + error);
               $('#current_user_prompt').val("")
               $('#more_books_btn').hide();
               after_ajax_call(action);
@@ -152,12 +155,14 @@
           //when the page is loaded, send a AJAX request to the server
           var urlParams = new URLSearchParams(window.location.search);
           if(urlParams.has('prompt')){
-              var userInput = urlParams.get('prompt');
-              ajax_call(userInput, "search");
-              // Get the current URL without query parameters
-              const baseUrl = window.location.href.split('?')[0];
-              // To replace current URL without adding it to history entries
-              history.replaceState(null, null, baseUrl);
+            var userInput = urlParams.get('prompt');
+            ajax_call(userInput, "search");
+            // Get the current URL without query parameters
+            //const baseUrl = window.location.href.split('?')[0];
+            // To replace current URL without adding it to history entries
+            //history.replaceState(null, null, baseUrl);
+          } else {
+            $('#more_books_btn').hide();//hide the more books button
           }
       } );
         
@@ -178,7 +183,7 @@
         <div class="mr-auto col-md-7 col-sm-12">
           <form class="form-inline" onsubmit="searchBooks();">
             <div class="input-group flex-grow-1">
-                <input class="form-control border-0 rounded-pill" type="search" placeholder="Search" aria-label="Search" id="prompt" name="prompt" required>
+                <input class="form-control border-0 rounded-pill" type="search" placeholder="Type a search prompt" aria-label="Search" id="prompt" name="prompt" required>
                 <div class="input-group-append">
                     <button class="btn btn-outline-success border-0 px-2" type="submit" id="mySubmitButton" aria-label="Search"><i class="fas fa-search"></i></button>
                 </div>
@@ -192,7 +197,7 @@
               <a class="nav-link" href="/">Home</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="about.html">About</a>
+              <a class="nav-link" href="/about">About</a>
             </li>
           </ul>
         </div>

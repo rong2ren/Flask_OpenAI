@@ -1,5 +1,5 @@
 from flask_app import app, logger
-from flask import render_template, request, jsonify, url_for, session
+from flask import render_template, request, jsonify, url_for, session, send_from_directory
 import uuid # for generate user_session_id
 import asyncio # for running API calls concurrently
 from api.openai_api import openai_chat_completion
@@ -21,7 +21,7 @@ def prompt_engineer(user_prompt, user_session_id, prompt_type = 0):
         history_user_mesage = {"role": "user", "content" : f"Generate book recommendations based on the user input: {user_prompt}."}
         history_books = redis_client.get_books(user_session_id)
         history_books_string = ', '.join(str(elem) for elem in history_books)
-        logger.info("books have been recommended: " + history_books_string)
+        #logger.debug(f"books have been recommended: {history_books_string}")
         history_ui_message = {"role": "assistant", "content" : f"{history_books_string}"}
         messages.append(history_user_mesage)
         messages.append(history_ui_message)
@@ -36,8 +36,10 @@ async def search_books(messages, user_session_id):
     if not response_data: 
         return {'error': 'OpenAI API call failed!'}
     
+    
     # process books from OpenAI
     book_lines = [line.strip() for line in response_data.split('\n') if line.strip()]
+    logger.info(f"OpenAI API returned {len(book_lines)} books.")
     async def process_book(line):
         # Split the line by the delimiter to extract book name and author
         book = line.split('$')
@@ -63,12 +65,12 @@ async def search_books(messages, user_session_id):
             else:
                 cover_url = f"https://covers.openlibrary.org/b/id/{cover_id}-M.jpg"
             
-            logger.info(f"Books: Name: {name}, Author: {author}, ID: {cover_id}")
+            logger.debug(f"Books: Name: {name}, Author: {author}, ID: {cover_id}")
             # add the book to redis
             if redis_client.add_book(user_session_id, name) == 0:
-                logger.error(f"Redis: failed to add one book to the user set: {name}, {author}")
-            
-            return {'name': name, 'author': author, 'coverUrl': cover_url, 'description': description}
+                logger.error(f"Redis: failed to add one book to the user: {name}, {author}")
+            else:
+                return {'name': name, 'author': author, 'coverUrl': cover_url, 'description': description}
     
     # Create tasks to process each book in response_lines concurrently
     book_tasks = [asyncio.create_task(process_book(line)) for line in book_lines]
@@ -84,11 +86,20 @@ def check_session():
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    # index.html is a static file, it can be served directly from the file system without any processing (Jinja2), 
+    # which makes send_from_directory the faster option.
+    #return render_template('index.html')
+    return send_from_directory('templates', 'index.html')
+
+@app.route('/about')
+def about():
+    #return render_template('about.html')
+    return send_from_directory('templates', 'about.html')
 
 @app.route('/recommend')
 def search():
-    return render_template('search.html')
+    #return render_template('search.html')
+    return send_from_directory('templates', 'search.html')
 
 # AJAX call: search for books
 @app.route('/search', methods=['POST'])
@@ -102,11 +113,16 @@ async def search_request():
             if action == "search" and redis_client.is_user_session_exist(user_session_id):
                 #new book search: remove the previous books
                 redis_client.remove_user_session(user_session_id)
-            #sent request to ChatGPT and openlibary and store the list of books in redis session
-            messages = prompt_engineer(prompt, user_session_id, action)
-            response_data = await search_books(messages, user_session_id)
-            #set expiry seconds for the redis session (default: 1 hour)
-            redis_client.expire_user_session_after(user_session_id)
+            
+            if action == "more" and redis_client.get_num_books(user_session_id) <= 0:
+                response_data = {'error':'Session expired. Cannot get more books!'}
+            else:
+                #sent request to ChatGPT and openlibary and store the list of books in redis session
+                messages = prompt_engineer(prompt, user_session_id, action)
+                response_data = await search_books(messages, user_session_id)
+                logger.info(f"added {len(response_data)} books to Redis")
+                #set expiry seconds for the redis session (default: 1 hour)
+                redis_client.expire_user_session_after(user_session_id)
         else:
             response_data = {'error':'Cannot connect to redis!'}
     else:
