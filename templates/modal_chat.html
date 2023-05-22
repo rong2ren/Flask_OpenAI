@@ -1,0 +1,48 @@
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header modal_head_padding">
+        <p class="modal-title" id="exampleModalLabel"> </p>
+        <button type='button' class='close' data-dismiss='modal' aria-label='Close'>
+          <span aria-hidden='true'>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+          <div class="container">
+        
+            <div class="row d-flex justify-content-center">
+  
+                <div class="card w-100" >
+                  <div class="card-body scrollable" id="chat_card_body">
+        
+                    <div class="d-flex flex-row justify-content-start mb-4">
+                      <img class="avatar_img" src="/static/ai.png"
+                        alt="ai"/>
+                      <div class="p-3 ms-3 ai_chat">
+                        <p class="small mb-0">Hello and thank you for using PageTurn AI. Please let me know what books you are interested in.</p>
+                      </div>
+                    </div>
+        
+                    <!--append human and ai conversation here-->
+        
+                  </div>
+
+                  <div class="card-footer text-muted d-flex justify-content-start align-items-center p-3">
+                    <form class="input-group" onsubmit="human_chat(event);">
+                        <input type="text" class="form-control" id="human_chat_input" placeholder="Type message">
+                        <button id="chat_btn" type="submit" class="btn btn-link"> <i class="fa fa-paper-plane"></i></button>
+                    </form>
+                  </div>
+                </div>
+        
+            </div>
+        
+          </div>
+      </div>
+
+      <div class="modal-footer border-0 modal_foot_padding">
+        <button type="button" class="btn btn-outline-success" data-dismiss="modal">Recommend Books</button>
+      </div>
+    </div>
+  </div>
+</div>
