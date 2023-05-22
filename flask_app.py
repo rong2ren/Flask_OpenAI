@@ -1,19 +1,14 @@
-from config import DevelopmentConfig, ProductionConfig
-import os
 from flask import Flask
 import logging
+from config import Config
+
 
 def create_flask_app():
-    config_by_name = dict(
-        dev=DevelopmentConfig,
-        prod=ProductionConfig
-    )
-    config_name = os.getenv('APP_ENV', 'dev')
 
     app = Flask(__name__)
-    app.config.from_object(config_by_name[config_name])
-
     # Logging configuration
+    app.config.from_object(Config)
+    
     LOG_LEVEL_MAP = {
         'DEBUG': logging.DEBUG,
         'INFO': logging.INFO,
@@ -21,7 +16,6 @@ def create_flask_app():
         'ERROR': logging.ERROR,
         'CRITICAL': logging.CRITICAL
     }
-    LOGGING_LEVEL = os.getenv('LOGGING_LEVEL', 'INFO')
     """
     1. The defulat logging format for flask is:
     %(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]
@@ -34,7 +28,7 @@ def create_flask_app():
         format = '%(asctime)s - %(levelname)s - %(message)s'
     )
     """
-    app.logger.setLevel(LOG_LEVEL_MAP.get(LOGGING_LEVEL, logging.WARNING))
+    app.logger.setLevel(LOG_LEVEL_MAP.get(app.config.get('LOGGING_LEVEL', 'WARNING')))
     return app
 
 app = create_flask_app()    
