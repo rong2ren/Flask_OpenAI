@@ -1,6 +1,9 @@
 
 ## Flask
 Flask is a micro web framework written in Python. It's designed to be lightweight and flexible, making it a popular choice for building web applications. Flask provides a lot of functionality out of the box, but it's also highly extensible, meaning you can easily add additional libraries and packages to customize your application.
+Flask is a lightweight, Python-based web framework used to build web applications and REST APIs.
+Flask is similar to Express.js (Node.js backend) in that it provides routing, request handling, and middleware but does not include a frontend.
+Uses HTML for UI? Yes, renders HTML via Jinja2 templates
 
 ## Redis
 Redis is an in-memory data structure store that's often used as a database, cache, and message broker. It's known for its fast read and write speeds, making it a great choice for applications that require high performance. Redis can be used to store a wide range of data types, including strings, lists, sets, and hashes.
@@ -30,7 +33,3 @@ Chat Messages (messages, where you will store the chatid, role, content and any 
 3. more books
 4. prompt enginner
 5. does langchain use chat or completion
-
-
-watch prompt engineer course
-watch youtube video about langchain
