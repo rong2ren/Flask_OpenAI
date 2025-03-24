@@ -42,5 +42,10 @@ http://localhost:8001/redis-stack/browser
 http://127.0.0.1:5000/
 
 Git:
-gh auth switch
+Switch to a different account: gh auth switch
+verify the active account: gh auth status
+Check Git Remote URL: git remote -v
+
+gh auth logout
+gh auth login
 
