@@ -47,13 +47,14 @@ List of previously recommended books: ```{history_books_string}```
 User's input: <{user_prompt}>
     """
 
-    logger.debug(prompt)
+    logger.info(prompt)
 
     messages = [
         {"role": "system", "content" : "You are an expert in books. You role is to give book recommendations based on users' needs and interests."},
         {"role": "user", "content" : prompt}
     ]
     return messages
+
 
 async def search_books(messages, user_session_id):
     
@@ -129,9 +130,23 @@ def about():
 @app.route('/chat', methods=['POST'])
 def chat():
     user_message = request.form['userMessage']
-    #return render_template('about.html')
-    ai_response = "ok"
-    return jsonify({'ai_response':ai_response})
+    user_books_cache_id = f"{session['user_id']}-chat"
+    #cache.expire_user_cache_after(user_books_cache_id)
+    cache.add_conversation_history(user_books_cache_id, 'User:' + user_message)
+
+    # Retrieve conversation history from Redis
+    conversation_history = cache.get_conversation_history(user_books_cache_id)
+
+    # Convert Redis values into the required format
+    messages = [
+        {"role": "system", "content" : "You are an expert in books. You will only answer questions regardsing books."},
+    ]
+    #messages = [{"role": "user", "content": message} for message in conversation_history]
+    messages.extend([{"role": "user", "content": message} for message in conversation_history])
+    bot_response = openai_chat_completion(messages, "gpt-3.5-turbo", 1024, 0.2)
+    #bot_response = "ok"
+    cache.add_conversation_history(user_books_cache_id, 'Bot:' + bot_response)
+    return jsonify({'ai_response':bot_response})
 
 @app.route('/recommend')
 def search():
@@ -148,15 +163,16 @@ async def search_request():
 
     if prompt:
         user_books_cache_id = f"{session['user_id']}-{prompt}"
+        # check cache is connecteed
         if cache.check_connection():
             if action == "search" and cache.is_user_cache_exist(user_books_cache_id):
-                #new book search: remove the previous books
+                #new book search: remove the previous cached books
                 cache.remove_user_cache(user_books_cache_id)
             
             if action == "more" and cache.get_num_books(user_books_cache_id) <= 0:
                 response_data = {'error':'Session expired. Failed to get more books!'}
             else:
-                #sent request to ChatGPT and openlibary and store the list of books in redis session
+                #sent request to ChatGPT and openlibary and store the list of books in redis cache
                 messages = prompt_engineer(prompt, user_books_cache_id, action)
                 response_data = await search_books(messages, user_books_cache_id)
                 if len(response_data) <= 0:

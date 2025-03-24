@@ -1,5 +1,4 @@
 from flask import Flask
-import logging
 from config import Config
 
 
@@ -9,6 +8,9 @@ def create_flask_app():
     # Logging configuration
     app.config.from_object(Config)
     
+    """
+    import logging
+
     LOG_LEVEL_MAP = {
         'DEBUG': logging.DEBUG,
         'INFO': logging.INFO,
@@ -16,7 +18,7 @@ def create_flask_app():
         'ERROR': logging.ERROR,
         'CRITICAL': logging.CRITICAL
     }
-    """
+
     1. The defulat logging format for flask is:
     %(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]
     2. The default logging level for Flask logger is WARNING, 
@@ -28,7 +30,7 @@ def create_flask_app():
         format = '%(asctime)s - %(levelname)s - %(message)s'
     )
     """
-    app.logger.setLevel(LOG_LEVEL_MAP.get(app.config.get('LOGGING_LEVEL', 'WARNING')))
+    app.logger.setLevel(app.config.get('LOGGING_LEVEL', 'WARNING'))
     return app
 
 app = create_flask_app()    

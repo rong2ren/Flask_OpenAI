@@ -1,16 +1,16 @@
-# pip install -r requirements.txt
+# pip3 install -r requirements.txt
 openai==0.27.4
 python-dotenv==1.0.0
 tiktoken==0.3.3
 flask==2.2.3
 flask[async]==2.1.2
-flask_session=0.4.0
-redis[hiredis]=4.5.4
+flask_session==0.4.0
+redis[hiredis]==4.5.4
 
-logging (already installed with python standard library)
-asyncio (already installed with python standard library)
-os (already installed with python standard library)
-yaml (for logging configuration file) - not used now
-time (already installed with python standard library)
-uuid (already installed with python standard library)
+#logging (already installed with python standard library)
+#asyncio (already installed with python standard library)
+#os (already installed with python standard library)
+#yaml (for logging configuration file) - not used now
+#time (already installed with python standard library)
+#uuid (already installed with python standard library)
 

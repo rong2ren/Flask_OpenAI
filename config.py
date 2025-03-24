@@ -5,7 +5,7 @@ class Config:
     SECRET_KEY = os.getenv('FLASK_SECRET_KEY')
     if not SECRET_KEY:
         raise Exception("FLASK_SECRET_KEY environment variable is not set")
-    DEBUG = os.getenv('APP_DEBUG', False)
+    DEBUG = os.getenv('APP_DEBUG', True)
 
     # Any remote API (OpenAI, Cohere etc.)
     OPENAI_TIMEOUT = float(os.getenv("REMOTE_API_TIMEOUT_SEC", 30))

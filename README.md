@@ -33,3 +33,14 @@ Chat Messages (messages, where you will store the chatid, role, content and any 
 3. more books
 4. prompt enginner
 5. does langchain use chat or completion
+
+
+Run the app
+1. start docker:
+http://localhost:8001/redis-stack/browser
+2. start flask: main.py
+http://127.0.0.1:5000/
+
+Git:
+gh auth switch
+
