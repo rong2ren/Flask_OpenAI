@@ -46,6 +46,7 @@ Switch to a different account: gh auth switch
 verify the active account: gh auth status
 Check Git Remote URL: git remote -v
 
+gh auth setup-git
 gh auth logout
 gh auth login
 
