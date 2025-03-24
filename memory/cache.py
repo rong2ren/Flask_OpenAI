@@ -16,7 +16,18 @@ class Cache():
         # expire the user session after expire_second second, default to 1 hour
         # Set expiry only when the key has no expiry
         return self.datastore.expire_cache_after(user_cache_id, expire_second)
-
+    
+    def add_conversation_history(self, user_chat_cache_id, message):
+        # Add a message to the conversation history for the given user ID.
+        if not user_chat_cache_id:
+            return 0
+        else:
+            return self.datastore.rpush_element_to_cache(user_chat_cache_id, message)
+    
+    def get_conversation_history(self, user_chat_cache_id):
+        # Get the conversation history for the given user ID.
+        return self.datastore.get_lists(user_chat_cache_id)
+    
     def add_book(self, user_cache_id, book):
         """
         Add a book to Redis for the given user ID.

@@ -1,7 +1,7 @@
 # Set your OpenAI API key here
 import openai
 
-openai.api_key = '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'
+openai.api_key = ''
 # Initialize conversation history
 conversation_history = [
     {"role": "system", "content": "You are a helpful AI assistant."}

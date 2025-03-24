@@ -28,7 +28,7 @@ class RedisDataStore(DataStore):
         Connect to the Redis server.
         """
         connection_pool = redis.ConnectionPool(
-            host="localhost", port="6379"
+            host="localhost", port="6379", decode_responses=True
         )
         self.redis_connection = redis.Redis(connection_pool=connection_pool)
 
@@ -44,8 +44,8 @@ class RedisDataStore(DataStore):
     def get_redis_instance(self):
         return self.redis_connection
     
-    def check_connection(self):
-        # Check if the Redis client object is connected to the Redis cache
+    def check_connection(self) -> bool:
+        # Check if the Redis client object is connected to the Redis
         try:
             self.redis_connection.ping()
             return True
@@ -62,7 +62,7 @@ class RedisDataStore(DataStore):
     # memory1: for saving chat messages
     def create_index(self):
         """
-        Creates a Redis index with a dense vector field.
+        Creates a Redis index with a vector field.
         """
         try:
             self.redis_connection.ft(f"{self.index_name}").create_index(
@@ -74,9 +74,9 @@ class RedisDataStore(DataStore):
                             "TYPE": "FLOAT32",
                             "DIM": 1536,
                             "DISTANCE_METRIC": "COSINE",
-                            "INITIAL_CAP": 686,
-                            "M": 40,
-                            "EF_CONSTRUCTION": 200,
+                            #"INITIAL_CAP": 686,
+                            #"M": 40,
+                            #"EF_CONSTRUCTION": 200,
                         },
                     ),
                     TextField("text"),  # contains the original message
@@ -212,6 +212,19 @@ class RedisDataStore(DataStore):
         return self.vec_num
     
     
+    def rpush_element_to_cache(self, key, element):
+        if not key:
+            return 0
+        else:
+            return self.redis_connection.rpush(key, element)
+        
+    def get_lists(self, key):
+        if not key:
+            return 0
+        else:
+            #return self.redis_connection.lrange(key, 0, -1) -> all lists
+            return self.redis_connection.lrange(key, -10, -1)
+            
 
     # memery 2: for saving books 
     def add_element_to_cache(self, key, element):

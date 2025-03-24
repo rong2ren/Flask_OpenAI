@@ -78,8 +78,10 @@ class DataStore(ABC):
         raise NotImplementedError
 
 
-
-
+    @abstractmethod
+    def check_connection(self) -> bool:
+        # Check if the Redis client object is connected to the Redis
+        raise NotImplementedError
 
     @abstractmethod
     def add_element_to_cache(self, key, element):
@@ -87,6 +89,14 @@ class DataStore(ABC):
         Add a book to Redis for the given user ID.
         Returns the number of books added, or 0 if the user ID is not provided.
         """
+        raise NotImplementedError
+
+    @abstractmethod
+    def rpush_element_to_cache(self, key, element):
+        raise NotImplementedError
+    
+    @abstractmethod
+    def get_lists(self, key):
         raise NotImplementedError
     
     @abstractmethod
